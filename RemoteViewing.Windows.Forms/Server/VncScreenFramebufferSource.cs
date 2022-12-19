@@ -26,7 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 #endregion
 
-#if NET461
+#if NET462
 using System;
 using System.Drawing;
 using System.Windows.Forms;

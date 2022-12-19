@@ -61,7 +61,7 @@ namespace RemoteViewing.ServerExample
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    var framebufferSource = new DummyFramebufferSource();
+                    var framebufferSource = new VncScreenFramebufferSource();
                     services.AddSingleton<IVncFramebufferSource>(framebufferSource);
                     services.AddSingleton<IVncRemoteController>(framebufferSource);
                     services.AddSingleton<IVncRemoteKeyboard>(framebufferSource);
