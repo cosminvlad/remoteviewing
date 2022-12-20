@@ -1,12 +1,13 @@
-﻿using SharpDX;
+﻿using System;
+using System.Drawing;
+using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
-using System;
 using Device = SharpDX.Direct3D11.Device;
 using ResultCode = SharpDX.DXGI.ResultCode;
 
-namespace RemoteViewing.ServerExample.Dxgi
+namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
 {
     /// <summary>
     ///   Source for partial video capture.
@@ -89,7 +90,10 @@ namespace RemoteViewing.ServerExample.Dxgi
             Output6 = null;
             Region = region;
 
-            if (region != output.Description.DesktopBounds)
+            if (region.Left != output.Description.DesktopBounds.Left ||
+                region.Top != output.Description.DesktopBounds.Top ||
+                region.Bottom != output.Description.DesktopBounds.Bottom ||
+                region.Right != output.Description.DesktopBounds.Right)
             {
                 Subregion = new ResourceRegion(region.Left - output.Description.DesktopBounds.Left,
                                                region.Top - output.Description.DesktopBounds.Top,
@@ -179,7 +183,9 @@ namespace RemoteViewing.ServerExample.Dxgi
                 {
                     foreach (Output output in adapter.Outputs)
                     {
-                        var intersection = Rectangle.Intersect(bounds, output.Description.DesktopBounds);
+                        int oWidth = output.Description.DesktopBounds.Right - output.Description.DesktopBounds.Left;
+                        int oHeight = output.Description.DesktopBounds.Bottom - output.Description.DesktopBounds.Top;
+                        var intersection = Rectangle.Intersect(bounds, new Rectangle(output.Description.DesktopBounds.Left, output.Description.DesktopBounds.Top, oWidth, oHeight));
                         if (intersection.Width > 0 && intersection.Height > 0)
                         {
                             source = new DxgiCaptureSource(adapter, output, new Rectangle(intersection.X,

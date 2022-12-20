@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace RemoteViewing.ServerExample.Dxgi
+namespace RemoteViewing.ServerExample.ScreenCapture
 {
     /// <summary>
     ///   Provides media output from a capture device

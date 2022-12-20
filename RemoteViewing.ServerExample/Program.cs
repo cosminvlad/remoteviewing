@@ -36,6 +36,7 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Threading.Tasks;
+using RemoteViewing.Vnc.Server;
 
 namespace RemoteViewing.ServerExample
 {
@@ -61,19 +62,19 @@ namespace RemoteViewing.ServerExample
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
-                    var framebufferSource = new VncScreenFramebufferSource();
+                    var framebufferSource = new ScreenFramebufferSource("test");
                     services.AddSingleton<IVncFramebufferSource>(framebufferSource);
                     services.AddSingleton<IVncRemoteController>(framebufferSource);
                     services.AddSingleton<IVncRemoteKeyboard>(framebufferSource);
 
                     services.AddLogging();
-                    services.AddVncServer<LibVncServer>(
+                    services.AddVncServer<VncServer>(
                         new VncServerOptions()
                         {
                             Port = port,
                             Password = password,
                             Address = "127.0.0.1",
-                            Reverse = true,
+                            Reverse = false,
                         });
                 });
     }
