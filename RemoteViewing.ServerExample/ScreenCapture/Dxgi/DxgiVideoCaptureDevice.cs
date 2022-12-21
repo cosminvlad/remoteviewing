@@ -119,7 +119,7 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
         /// <summary>
         ///   Acquires a single frame from this provider
         /// </summary>
-        public override void AcquireFrame()
+        public override unsafe void AcquireFrame()
         {
             for (int i = 0; i < this.sources.Length; i++)
             {
@@ -144,38 +144,44 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
                                                             out info,
                                                             out desktopResource);
 
-                        int moveRectsBufferSize = 1000;
-                        var moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferSize];
+                        int moveRectsBufferCount = 1000;
+                        var moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferCount];
+                        int moveRectsBufferSize = moveRectsBufferCount * sizeof(OutputDuplicateMoveRectangle);
                         int moveRectsBufferSizeRequired = 0;
                         do
                         {
                             source.Duplication.GetFrameMoveRects(moveRectsBufferSize, moveRectsBuffer, out moveRectsBufferSizeRequired);
                             if (moveRectsBufferSizeRequired > moveRectsBufferSize)
                             {
-                                moveRectsBufferSize += 1000;
-                                moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferSize];
+                                moveRectsBufferCount += 100;
+                                moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferCount];
+                                moveRectsBufferSize = moveRectsBufferCount * sizeof(OutputDuplicateMoveRectangle);
                             }
                             else
                             {
-                                Console.WriteLine($"M {moveRectsBufferSizeRequired:00} | {string.Join(" | ", moveRectsBuffer.Take(moveRectsBufferSizeRequired).Where(r => true).Select(r => $"{r.SourcePoint.X} {r.SourcePoint.Y} {r.DestinationRect.Left} {r.DestinationRect.Top}"))}");
+                                var returnedMoveRectsBufferCount = moveRectsBufferSizeRequired / sizeof(OutputDuplicateMoveRectangle);
+                                Console.WriteLine($"M {returnedMoveRectsBufferCount:00} | {string.Join(" | ", moveRectsBuffer.Take(returnedMoveRectsBufferCount).Where(r => true).Select(r => $"{r.SourcePoint.X} {r.SourcePoint.Y} {r.DestinationRect.Left} {r.DestinationRect.Top}"))}");
                                 break;
                             }
                         } while (moveRectsBufferSizeRequired > moveRectsBufferSize);
 
-                        int dirtyRectsBufferSize = 1000;
-                        var dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferSize];
+                        int dirtyRectsBufferCount = 1000;
+                        var dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferCount];
+                        int dirtyRectsBufferSize = dirtyRectsBufferCount * sizeof(RawRectangle);
                         int dirtyRectsBufferSizeRequired = 0;
                         do
                         {
                             source.Duplication.GetFrameDirtyRects(dirtyRectsBufferSize, dirtyRectsBuffer, out dirtyRectsBufferSizeRequired);
                             if (dirtyRectsBufferSizeRequired > dirtyRectsBufferSize)
                             {
-                                dirtyRectsBufferSize += 1000;
-                                dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferSize];
+                                dirtyRectsBufferCount += 100;
+                                dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferCount];
+                                dirtyRectsBufferSize = dirtyRectsBufferCount * sizeof(RawRectangle);
                             }
                             else
                             {
-                                Console.WriteLine($"D {dirtyRectsBufferSizeRequired:00} | {string.Join(" | ", dirtyRectsBuffer.Take(dirtyRectsBufferSizeRequired).Where(r => !r.IsEmpty).Select(r => $"{r.Left} {r.Top} {r.Right} {r.Bottom}"))}");
+                                var returnedDirtyRectsBufferCount = dirtyRectsBufferSizeRequired / sizeof(RawRectangle);
+                                Console.WriteLine($"D {returnedDirtyRectsBufferCount:00} | {string.Join(" | ", dirtyRectsBuffer.Take(returnedDirtyRectsBufferCount).Where(r => !r.IsEmpty).Select(r => $"{r.Left} {r.Top} {r.Right} {r.Bottom}"))}");
                                 break;
                             }
                         } while (dirtyRectsBufferSizeRequired > dirtyRectsBufferSize);
@@ -236,7 +242,7 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
             if (this.sources.Length == 1 && this.sources.First().Alive)
             {
                 // TODO: if multiple textures are owned by a single adapter, merge them using CopySubresourceRegion
-                return new D3D11VideoFrame(this.sources[0].Texture);
+                return new D3D11VideoFrame(this.sources[0].Texture, this.sources[0].MoveRectangles, this.sources[0].DirtyRectangles);
             }
 
             return null;

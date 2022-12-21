@@ -6,6 +6,9 @@ using RemoteViewing.Vnc;
 using SharpDX;
 using SharpDX.Diagnostics;
 using SharpDX.Direct3D11;
+using SharpDX.DXGI;
+using SharpDX.Mathematics.Interop;
+using MapFlags = SharpDX.Direct3D11.MapFlags;
 
 namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
 {
@@ -16,17 +19,23 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
         /// </summary>
         public Texture2D Texture { get; }
 
+        internal OutputDuplicateMoveRectangle[] MoveRectangles { get; set; }
+
+        internal RawRectangle[] DirtyRectangles { get; set; }
+
         /// <summary>
         ///   Creates a new Direct3D 11 video frame
         /// </summary>
         /// <param name="texture">Texture object</param>
         /// <param name="presentTime">Time, in 100-nanosecond units, of the frame capture</param>
-        internal D3D11VideoFrame(Texture2D texture)
+        internal D3D11VideoFrame(Texture2D texture, OutputDuplicateMoveRectangle[] moveRectangles, RawRectangle[] dirtyRectangles )
         {
             Width = texture.Description.Width;
             Height = texture.Description.Height;
 
             Texture = texture;
+            MoveRectangles = moveRectangles;
+            DirtyRectangles = dirtyRectangles;
         }
 
         public override unsafe void CopyToVncFramebuffer(VncFramebuffer framebuffer)
@@ -34,8 +43,6 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
             using (var res = Texture.QueryInterface<SharpDX.Direct3D11.Resource>())
             {
                 DataBox map = Texture.Device.ImmediateContext.MapSubresource(res, 0, MapMode.Read, MapFlags.None);
-
-
 
                 fixed (byte* framebufferData = framebuffer.GetBuffer())
                 {

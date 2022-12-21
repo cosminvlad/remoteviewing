@@ -4,6 +4,7 @@ using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
+using SharpDX.Mathematics.Interop;
 using Device = SharpDX.Direct3D11.Device;
 using ResultCode = SharpDX.DXGI.ResultCode;
 
@@ -74,6 +75,10 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
         ///   When <c>true</c>, this source is available for capturing frames
         /// </summary>
         internal bool Alive { get; set; }
+
+        internal OutputDuplicateMoveRectangle[] MoveRectangles { get; set; }
+
+        internal RawRectangle[] DirtyRectangles { get; set; }
 
         /// <summary>
         ///   Struct constructor

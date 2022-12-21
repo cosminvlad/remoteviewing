@@ -91,7 +91,7 @@ namespace RemoteViewing.Vnc.Server
 
             this.passwordChallenge = passwordChallenge;
             this.logger = logger;
-            this.MaxUpdateRate = 15;
+            this.MaxUpdateRate = 30;
 
             this.Encoders.Add(new TightEncoder(this));
         }
