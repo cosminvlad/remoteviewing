@@ -6,6 +6,7 @@ using System.Linq;
 using SharpDX;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
+using SharpDX.Mathematics.Interop;
 using SharpDX.WIC;
 using Bitmap = SharpDX.WIC.Bitmap;
 using MapFlags = SharpDX.Direct3D11.MapFlags;
@@ -56,7 +57,7 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
         public DxgiVideoCaptureDevice(int x, int y, int width, int height) : base(x, y, width, height)
         {
             this.virtualRect = new Rectangle(x, y, width, height);
-            
+
             // obtain a list of capture sources
             using (var factory = new Factory1())
             {
@@ -142,6 +143,44 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
                         source.Duplication.TryAcquireNextFrame(DuplicationFrameTimeout,
                                                             out info,
                                                             out desktopResource);
+
+                        int moveRectsBufferSize = 1000;
+                        var moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferSize];
+                        int moveRectsBufferSizeRequired = 0;
+                        do
+                        {
+                            source.Duplication.GetFrameMoveRects(moveRectsBufferSize, moveRectsBuffer, out moveRectsBufferSizeRequired);
+                            if (moveRectsBufferSizeRequired > moveRectsBufferSize)
+                            {
+                                moveRectsBufferSize += 1000;
+                                moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferSize];
+                            }
+                            else
+                            {
+                                Console.WriteLine($"M {moveRectsBufferSizeRequired:00} | {string.Join(" | ", moveRectsBuffer.Take(moveRectsBufferSizeRequired).Where(r => true).Select(r => $"{r.SourcePoint.X} {r.SourcePoint.Y} {r.DestinationRect.Left} {r.DestinationRect.Top}"))}");
+                                break;
+                            }
+                        } while (moveRectsBufferSizeRequired > moveRectsBufferSize);
+
+                        int dirtyRectsBufferSize = 1000;
+                        var dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferSize];
+                        int dirtyRectsBufferSizeRequired = 0;
+                        do
+                        {
+                            source.Duplication.GetFrameDirtyRects(dirtyRectsBufferSize, dirtyRectsBuffer, out dirtyRectsBufferSizeRequired);
+                            if (dirtyRectsBufferSizeRequired > dirtyRectsBufferSize)
+                            {
+                                dirtyRectsBufferSize += 1000;
+                                dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferSize];
+                            }
+                            else
+                            {
+                                Console.WriteLine($"D {dirtyRectsBufferSizeRequired:00} | {string.Join(" | ", dirtyRectsBuffer.Take(dirtyRectsBufferSizeRequired).Where(r => !r.IsEmpty).Select(r => $"{r.Left} {r.Top} {r.Right} {r.Bottom}"))}");
+                                break;
+                            }
+                        } while (dirtyRectsBufferSizeRequired > dirtyRectsBufferSize);
+
+
                     } while (info.TotalMetadataBufferSize == 0);
 
                     using (var srcResource = desktopResource.QueryInterface<SharpDX.Direct3D11.Resource>())
