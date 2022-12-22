@@ -80,6 +80,10 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
                 // release system memory
                 Texture.Device.ImmediateContext.UnmapSubresource(res, 0);
             }
+
+            var dxgiFramebuffer = framebuffer as DxgiFramebuffer;
+            dxgiFramebuffer.MoveRectangles = MoveRectangles;
+            dxgiFramebuffer.DirtyRectangles = DirtyRectangles;
         }
     }
 }

@@ -46,6 +46,7 @@ namespace RemoteViewing.Vnc.Server
         private readonly IVncRemoteKeyboard keyboard;
         private readonly IVncRemoteController controller;
         private readonly ILogger logger;
+        private readonly Func<VncFramebuffer, ILogger, IVncFramebufferCache> createFramebufferCache;
         private readonly List<IVncServerSession> sessions = new List<IVncServerSession>();
         private TcpListener listener;
         private Task runLoop;
@@ -65,8 +66,8 @@ namespace RemoteViewing.Vnc.Server
         /// <param name="logger">
         /// The logger to use.
         /// </param>
-        public VncServer(IVncFramebufferSource framebufferSource, IVncRemoteKeyboard keyboard, IVncRemoteController controller, ILogger<VncServer> logger)
-            : this(framebufferSource, keyboard, controller, (ILogger)logger)
+        public VncServer(IVncFramebufferSource framebufferSource, IVncRemoteKeyboard keyboard, IVncRemoteController controller, ILogger<VncServer> logger, Func<VncFramebuffer, ILogger, IVncFramebufferCache> createFramebufferCache)
+            : this(framebufferSource, keyboard, controller, (ILogger)logger, createFramebufferCache)
         {
         }
 
@@ -85,12 +86,13 @@ namespace RemoteViewing.Vnc.Server
         /// <param name="logger">
         /// The logger to use.
         /// </param>
-        public VncServer(IVncFramebufferSource framebufferSource, IVncRemoteKeyboard keyboard, IVncRemoteController controller, ILogger logger)
+        public VncServer(IVncFramebufferSource framebufferSource, IVncRemoteKeyboard keyboard, IVncRemoteController controller, ILogger logger, Func<VncFramebuffer, ILogger, IVncFramebufferCache> createFramebufferCache)
         {
             this.framebufferSource = framebufferSource ?? throw new ArgumentNullException(nameof(framebufferSource));
             this.keyboard = keyboard;
             this.controller = controller;
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.createFramebufferCache = createFramebufferCache;
         }
 
         /// <inheritdoc/>
@@ -186,6 +188,11 @@ namespace RemoteViewing.Vnc.Server
                 if (this.controller != null)
                 {
                     session.PointerChanged += this.controller.HandleTouchEvent;
+                }
+
+                if (this.createFramebufferCache!= null)
+                {
+                    session.CreateFramebufferCache = this.createFramebufferCache;
                 }
 
                 this.sessions.Add(session);

@@ -144,7 +144,7 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
                                                             out info,
                                                             out desktopResource);
 
-                        int moveRectsBufferCount = 1000;
+                        int moveRectsBufferCount = 100;
                         var moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferCount];
                         int moveRectsBufferSize = moveRectsBufferCount * sizeof(OutputDuplicateMoveRectangle);
                         int moveRectsBufferSizeRequired = 0;
@@ -153,19 +153,20 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
                             source.Duplication.GetFrameMoveRects(moveRectsBufferSize, moveRectsBuffer, out moveRectsBufferSizeRequired);
                             if (moveRectsBufferSizeRequired > moveRectsBufferSize)
                             {
-                                moveRectsBufferCount += 100;
+                                moveRectsBufferCount += 10;
                                 moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferCount];
                                 moveRectsBufferSize = moveRectsBufferCount * sizeof(OutputDuplicateMoveRectangle);
                             }
                             else
                             {
                                 var returnedMoveRectsBufferCount = moveRectsBufferSizeRequired / sizeof(OutputDuplicateMoveRectangle);
-                                Console.WriteLine($"M {returnedMoveRectsBufferCount:00} | {string.Join(" | ", moveRectsBuffer.Take(returnedMoveRectsBufferCount).Where(r => true).Select(r => $"{r.SourcePoint.X} {r.SourcePoint.Y} {r.DestinationRect.Left} {r.DestinationRect.Top}"))}");
+                                Console.WriteLine($"M {returnedMoveRectsBufferCount:00} | {string.Join(" | ", moveRectsBuffer.Take(returnedMoveRectsBufferCount).Select(r => $"{r.SourcePoint.X} {r.SourcePoint.Y} {r.DestinationRect.Left} {r.DestinationRect.Top}"))}");
+                                source.MoveRectangles = moveRectsBuffer[..returnedMoveRectsBufferCount];
                                 break;
                             }
                         } while (moveRectsBufferSizeRequired > moveRectsBufferSize);
 
-                        int dirtyRectsBufferCount = 1000;
+                        int dirtyRectsBufferCount = 10;
                         var dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferCount];
                         int dirtyRectsBufferSize = dirtyRectsBufferCount * sizeof(RawRectangle);
                         int dirtyRectsBufferSizeRequired = 0;
@@ -174,14 +175,15 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
                             source.Duplication.GetFrameDirtyRects(dirtyRectsBufferSize, dirtyRectsBuffer, out dirtyRectsBufferSizeRequired);
                             if (dirtyRectsBufferSizeRequired > dirtyRectsBufferSize)
                             {
-                                dirtyRectsBufferCount += 100;
+                                dirtyRectsBufferCount += 10;
                                 dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferCount];
                                 dirtyRectsBufferSize = dirtyRectsBufferCount * sizeof(RawRectangle);
                             }
                             else
                             {
                                 var returnedDirtyRectsBufferCount = dirtyRectsBufferSizeRequired / sizeof(RawRectangle);
-                                Console.WriteLine($"D {returnedDirtyRectsBufferCount:00} | {string.Join(" | ", dirtyRectsBuffer.Take(returnedDirtyRectsBufferCount).Where(r => !r.IsEmpty).Select(r => $"{r.Left} {r.Top} {r.Right} {r.Bottom}"))}");
+                                Console.WriteLine($"D {returnedDirtyRectsBufferCount:00} | {string.Join(" | ", dirtyRectsBuffer.Take(returnedDirtyRectsBufferCount).Select(r => $"{r.Left} {r.Top} {r.Right} {r.Bottom}"))}");
+                                source.DirtyRectangles = dirtyRectsBuffer[..returnedDirtyRectsBufferCount];
                                 break;
                             }
                         } while (dirtyRectsBufferSizeRequired > dirtyRectsBufferSize);

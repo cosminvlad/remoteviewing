@@ -162,6 +162,8 @@ namespace RemoteViewing.Vnc.Server
         /// </remarks>
         void FramebufferManualInvalidateAll();
 
+        void FramebufferManualCopyRegion(VncRectangle target, int sourceX, int sourceY);
+
         /// <summary>
         /// Completes a manual framebuffer update.
         /// </summary>

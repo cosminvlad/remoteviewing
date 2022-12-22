@@ -65,12 +65,8 @@ namespace RemoteViewing.ServerExample.Native
         [DllImport("user32.dll")]
         public static extern IntPtr GetWindowRect(IntPtr hWnd, ref RECT rect);
 
-        [DllImport(nameof(User32), EntryPoint = "SetCursorPos")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool SetCursorPos(int x, int y);
-
         [DllImport("user32.dll")]
-        static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
+        internal static extern uint SendInput(uint nInputs, INPUT[] pInputs, int cbSize);
     }
 
     [StructLayout(LayoutKind.Sequential)]

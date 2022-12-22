@@ -37,6 +37,9 @@ using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Threading.Tasks;
 using RemoteViewing.Vnc.Server;
+using Microsoft.Extensions.Logging;
+using System;
+using RemoteViewing.ServerExample.ScreenCapture.Dxgi;
 
 namespace RemoteViewing.ServerExample
 {
@@ -66,6 +69,8 @@ namespace RemoteViewing.ServerExample
                     services.AddSingleton<IVncFramebufferSource>(framebufferSource);
                     services.AddSingleton<IVncRemoteController>(framebufferSource);
                     services.AddSingleton<IVncRemoteKeyboard>(framebufferSource);
+                    services.AddSingleton<Func<VncFramebuffer, ILogger, IVncFramebufferCache>>((framebuffer, log) =>
+                        new DxgiFramebufferCache(framebuffer, log));
 
                     services.AddLogging();
                     services.AddVncServer<VncServer>(

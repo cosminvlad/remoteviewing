@@ -1,9 +1,8 @@
-﻿using RemoteViewing.ServerExample.ScreenCapture;
-using RemoteViewing.ServerExample.ScreenCapture.Gdi;
+﻿using RemoteViewing.ServerExample.Native;
+using RemoteViewing.ServerExample.ScreenCapture;
 using RemoteViewing.Vnc;
 using System;
 using System.Drawing;
-using RemoteViewing.ServerExample.Native;
 using RemoteViewing.ServerExample.ScreenCapture.Dxgi;
 
 namespace RemoteViewing.ServerExample
@@ -12,7 +11,7 @@ namespace RemoteViewing.ServerExample
     /// <summary>
     /// Provides a framebuffer with pixels copied from the screen.
     /// </summary>
-    public class ScreenFramebufferSource : IVncFramebufferSource, IVncRemoteKeyboard, IVncRemoteController
+    public partial class ScreenFramebufferSource : IVncFramebufferSource
     {
         private Bitmap bitmap;
         private VncFramebuffer framebuffer;
@@ -20,7 +19,7 @@ namespace RemoteViewing.ServerExample
         private readonly VideoCaptureDevice captureDevice;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="VncScreenFramebufferSource"/> class.
+        /// Initializes a new instance of the <see cref="ScreenFramebufferSource"/> class.
         /// </summary>
         /// <param name="name">The framebuffer name. Many VNC clients set their titlebar to this name.</param>
         /// <param name="screen">The bounds of the screen region.</param>
@@ -63,7 +62,7 @@ namespace RemoteViewing.ServerExample
                 if (this.bitmap == null || this.bitmap.Width != w || this.bitmap.Height != h)
                 {
                     this.bitmap = new Bitmap(w, h);
-                    this.framebuffer = new VncFramebuffer(this.name, w, h, new VncPixelFormat());
+                    this.framebuffer = new DxgiFramebuffer(this.name, w, h, new VncPixelFormat());
                 }
 
                 lock (this.framebuffer.SyncRoot)
@@ -96,27 +95,5 @@ namespace RemoteViewing.ServerExample
 
             return this.framebuffer;
         }
-
-        public void HandleTouchEvent(object sender, PointerChangedEventArgs e)
-        {
-        }
-
-        /// <inheritdoc/>
-        public void HandleKeyEvent(object sender, KeyChangedEventArgs e)
-        {
-            // The following keys influence the framebuffer:
-            // + doubles the size of the framebuffer
-            // - custs the size of the framebuffer in half
-            // r rotates the framebuffer 90 degrees
-            // R sets the framebuffer to a _red_ screen
-            // G sets the framebuffer to a _green_ screen
-            // B sets the framebuffer to a _blue_ screen
-            // A sets the framebuffer to an _animating_ screen
-            //
-            // The R, G, B functions can be useful to make sure the individual color channels come through correctly (e.g. not swapping R/B channels)
-            // The A function can be useful to set the framerate
-
-        }
     }
-
 }
