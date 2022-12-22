@@ -91,7 +91,7 @@ namespace RemoteViewing.Vnc.Server
 
             this.passwordChallenge = passwordChallenge;
             this.logger = logger;
-            this.MaxUpdateRate = 30;
+            this.MaxUpdateRate = 15;
 
             this.Encoders.Add(new TightEncoder(this));
         }
@@ -958,7 +958,7 @@ namespace RemoteViewing.Vnc.Server
                         this.c.SendUInt32BE((uint)rectangle.Encoding);
                         this.c.Send(rectangle.Contents);
 
-                        this.RecordEncoderTransfer(rectangle.Encoding, rectangle.Contents.Length, rectangle.Contents.Length);
+                        this.RecordEncoderTransfer(rectangle.Encoding, rectangle.Contents.Count, rectangle.Contents.Count);
                     }
                     else
                     {
@@ -1203,7 +1203,7 @@ namespace RemoteViewing.Vnc.Server
         {
             public VncRectangle Region;
             public VncEncoding Encoding;
-            public byte[] Contents;
+            public ArraySegment<byte> Contents;
         }
     }
 }
