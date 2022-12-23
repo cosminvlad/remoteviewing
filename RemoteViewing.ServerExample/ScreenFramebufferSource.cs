@@ -25,7 +25,6 @@ namespace RemoteViewing.ServerExample
         /// <param name="screen">The bounds of the screen region.</param>
         public ScreenFramebufferSource(string name)
         {
-
             this.name = name ?? throw new ArgumentNullException(nameof(name));
 
             var windowHandle = User32.GetDesktopWindow();

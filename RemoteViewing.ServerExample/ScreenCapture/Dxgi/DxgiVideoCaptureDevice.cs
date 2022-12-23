@@ -194,21 +194,22 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
             var dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferCount];
             int dirtyRectsBufferSize = dirtyRectsBufferCount * sizeof(RawRectangle);
             int dirtyRectsBufferSizeRequired = 0;
+
             do
             {
-                source.Duplication.GetFrameDirtyRects(dirtyRectsBufferSize, dirtyRectsBuffer, out dirtyRectsBufferSizeRequired);
-                if (dirtyRectsBufferSizeRequired > dirtyRectsBufferSize)
+                try
                 {
-                    dirtyRectsBufferCount += 100;
-                    dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferCount];
-                    dirtyRectsBufferSize = dirtyRectsBufferCount * sizeof(RawRectangle);
-                }
-                else
-                {
+                    source.Duplication.GetFrameDirtyRects(dirtyRectsBufferSize, dirtyRectsBuffer, out dirtyRectsBufferSizeRequired);
                     var returnedDirtyRectsBufferCount = dirtyRectsBufferSizeRequired / sizeof(RawRectangle);
                     //Console.WriteLine($"D {returnedDirtyRectsBufferCount:00} | {string.Join(" | ", dirtyRectsBuffer.Take(returnedDirtyRectsBufferCount).Select(r => $"{r.Left} {r.Top} {r.Right} {r.Bottom}"))}");
                     source.DirtyRectangles = dirtyRectsBuffer[..returnedDirtyRectsBufferCount];
                     break;
+                }
+                catch (SharpDXException ex) when (ex.ResultCode == DxgiError.DXGI_ERROR_MORE_DATA)
+                {
+                    dirtyRectsBufferCount += 100;
+                    dirtyRectsBuffer = new RawRectangle[dirtyRectsBufferCount];
+                    dirtyRectsBufferSize = dirtyRectsBufferCount * sizeof(RawRectangle);
                 }
             } while (dirtyRectsBufferSizeRequired > dirtyRectsBufferSize);
         }
@@ -219,21 +220,22 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
             var moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferCount];
             int moveRectsBufferSize = moveRectsBufferCount * sizeof(OutputDuplicateMoveRectangle);
             int moveRectsBufferSizeRequired = 0;
+
             do
             {
-                source.Duplication.GetFrameMoveRects(moveRectsBufferSize, moveRectsBuffer, out moveRectsBufferSizeRequired);
-                if (moveRectsBufferSizeRequired > moveRectsBufferSize)
+                try
                 {
-                    moveRectsBufferCount += 100;
-                    moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferCount];
-                    moveRectsBufferSize = moveRectsBufferCount * sizeof(OutputDuplicateMoveRectangle);
-                }
-                else
-                {
+                    source.Duplication.GetFrameMoveRects(moveRectsBufferSize, moveRectsBuffer, out moveRectsBufferSizeRequired);
                     var returnedMoveRectsBufferCount = moveRectsBufferSizeRequired / sizeof(OutputDuplicateMoveRectangle);
                     //Console.WriteLine($"M {returnedMoveRectsBufferCount:00} | {string.Join(" | ", moveRectsBuffer.Take(returnedMoveRectsBufferCount).Select(r => $"{r.SourcePoint.X} {r.SourcePoint.Y} {r.DestinationRect.Left} {r.DestinationRect.Top}"))}");
                     source.MoveRectangles = moveRectsBuffer[..returnedMoveRectsBufferCount];
                     break;
+                }
+                catch (SharpDXException ex) when (ex.ResultCode == DxgiError.DXGI_ERROR_MORE_DATA)
+                {
+                    moveRectsBufferCount += 100;
+                    moveRectsBuffer = new OutputDuplicateMoveRectangle[moveRectsBufferCount];
+                    moveRectsBufferSize = moveRectsBufferCount * sizeof(OutputDuplicateMoveRectangle);
                 }
             } while (moveRectsBufferSizeRequired > moveRectsBufferSize);
         }

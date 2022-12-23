@@ -1,7 +1,6 @@
 ﻿using RemoteViewing.ServerExample.Native;
 using RemoteViewing.Vnc;
 using System;
-using TurboJpegWrapper;
 
 namespace RemoteViewing.ServerExample
 {
