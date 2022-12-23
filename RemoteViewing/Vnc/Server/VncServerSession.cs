@@ -28,12 +28,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using Microsoft.Extensions.Logging;
 using System;
+using System.Buffers;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using TurboJpegWrapper;
 
 namespace RemoteViewing.Vnc.Server
 {
@@ -493,7 +496,7 @@ namespace RemoteViewing.Vnc.Server
             }
 
             int x = region.X, y = region.Y, w = region.Width, h = region.Height, bpp = cpf.BytesPerPixel;
-            var contents = new byte[w * h * bpp];
+            var contents = ArrayPool<byte>.Shared.Rent(w * h * bpp);
 
             VncPixelFormat.Copy(
                 fb.GetBuffer(),
@@ -546,6 +549,15 @@ namespace RemoteViewing.Vnc.Server
             this.FramebufferUpdateRequest = null;
 
             this.SendRectangles(this.fbuRectangles);
+
+            foreach (var fbuRectangle in this.fbuRectangles)
+            {
+                if (fbuRectangle.Contents != null)
+                {
+                    ArrayPool<byte>.Shared.Return(fbuRectangle.Contents);
+                }
+            }
+
             this.fbuRectangles.Clear();
             return true;
         }
@@ -958,7 +970,7 @@ namespace RemoteViewing.Vnc.Server
                         this.c.SendUInt32BE((uint)rectangle.Encoding);
                         this.c.Send(rectangle.Contents);
 
-                        this.RecordEncoderTransfer(rectangle.Encoding, rectangle.Contents.Count, rectangle.Contents.Count);
+                        this.RecordEncoderTransfer(rectangle.Encoding, rectangle.Contents.Length, rectangle.Contents.Length);
                     }
                     else
                     {
@@ -1203,7 +1215,7 @@ namespace RemoteViewing.Vnc.Server
         {
             public VncRectangle Region;
             public VncEncoding Encoding;
-            public ArraySegment<byte> Contents;
+            public byte[] Contents;
         }
     }
 }
