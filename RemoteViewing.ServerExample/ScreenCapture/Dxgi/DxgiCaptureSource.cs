@@ -80,6 +80,8 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
 
         internal RawRectangle[] DirtyRectangles { get; set; }
 
+        internal PointerInfo PointerInfo { get; set; }
+
         /// <summary>
         ///   Struct constructor
         /// </summary>

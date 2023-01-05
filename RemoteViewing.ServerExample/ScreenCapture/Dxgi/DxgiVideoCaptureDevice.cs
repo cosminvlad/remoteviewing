@@ -20,7 +20,7 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
         /// <summary>
         ///   Timeout, in milliseconds, to consider a desktop duplication frame lost
         /// </summary>
-        private const int DuplicationFrameTimeout = -1;
+        private const int DuplicationFrameTimeout = 1000;
 
         /// <summary>
         ///   Frequency of the system performance counter
@@ -40,6 +40,9 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
         ///   primary monitor.
         /// </remarks>
         private readonly Rectangle virtualRect;
+
+        private long lastMouseUpdateTime;
+        private OutputDuplicateFrameInformation lastFrameInformation;
 
         /// <summary>
         ///   Enumerates the devices being used by the current capture sources
@@ -143,10 +146,14 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
                         source.Duplication.TryAcquireNextFrame(DuplicationFrameTimeout,
                                                             out info,
                                                             out desktopResource);
+
+                        this.lastFrameInformation = info;
                     } while (info.TotalMetadataBufferSize == 0);
 
                     GetFrameMoveRects(source);
                     GetFrameDirtyRects(source);
+
+                    GetMousePointer(source, this.lastFrameInformation);
 
                     using (var srcResource = desktopResource.QueryInterface<SharpDX.Direct3D11.Resource>())
                     using (var destResource = source.Texture.QueryInterface<SharpDX.Direct3D11.Resource>())
@@ -240,6 +247,96 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
             } while (moveRectsBufferSizeRequired > moveRectsBufferSize);
         }
 
+        private unsafe void GetMousePointer(
+            DxgiCaptureSource source,
+            OutputDuplicateFrameInformation frameInfo)
+        {
+            if (frameInfo.LastMouseUpdateTime > this.lastMouseUpdateTime)
+            {
+                var pointerInfo = new PointerInfo
+                {
+                    PointerPosition = frameInfo.PointerPosition.Position,
+                    Visible = frameInfo.PointerPosition.Visible,
+                };
+                source.PointerInfo = pointerInfo;
+                this.lastMouseUpdateTime = frameInfo.LastMouseUpdateTime;
+            }
+            else
+            {
+                // Pointer was not updated, don't capture pointer info
+                source.PointerInfo = null;
+                return;
+            }
+
+            if (frameInfo.PointerShapeBufferSize != 0)
+            {
+                int poinerShapeBufferSize = frameInfo.PointerShapeBufferSize;
+                var pointerShapeBuffer = new byte[poinerShapeBufferSize];
+                int poinerShapeBufferSizeRequired = 0;
+
+                fixed (byte* pointerShapeBufferRef = pointerShapeBuffer)
+                {
+                    source.Duplication.GetFramePointerShape(
+                        poinerShapeBufferSize,
+                        (IntPtr)pointerShapeBufferRef,
+                        out poinerShapeBufferSizeRequired,
+                        out var pointerShapeInformation);
+
+                    if (pointerShapeInformation.Type == 1 /* DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MONOCHROME */)
+                    {
+
+                        source.PointerInfo.Image = new PointerImage
+                        {
+                            Width = pointerShapeInformation.Width,
+                            Height = pointerShapeInformation.Height,
+                            BytesPerPixel = pointerShapeInformation.Pitch,
+                            Image = pointerShapeBuffer[..poinerShapeBufferSizeRequired],
+                        };
+                    }
+                    else if (pointerShapeInformation.Type == 2 /* DXGI_OUTDUPL_POINTER_SHAPE_TYPE_COLOR */
+                        || pointerShapeInformation.Type == 4 /* DXGI_OUTDUPL_POINTER_SHAPE_TYPE_MASKED_COLOR */)
+                    {
+                        // https://learn.microsoft.com/en-us/windows/win32/api/dxgi1_2/ne-dxgi1_2-dxgi_outdupl_pointer_shape_type
+                        int w = pointerShapeInformation.Width, h = pointerShapeInformation.Height;
+
+                        var cursorPixels = pointerShapeBuffer[..poinerShapeBufferSizeRequired];
+                        var bitmask = new byte[(int)Math.Floor((w + 7) / 8.0) * h];
+
+                        int bytesPerPixel = 4;
+                        for (int i = 0; i < w; i++)
+                        {
+                            for (int j = 0; j < h; j++)
+                            {
+                                if (pointerShapeBuffer[j * w * bytesPerPixel + i * bytesPerPixel + 3] == 0)
+                                {
+                                    var bitIndex = j * w + i;
+                                    int byteIndex = bitIndex / 8;
+                                    int bitInByteIndex = bitIndex % 8;
+                                    byte mask = (byte)(1 << bitInByteIndex);
+                                    // Set the bit to 1
+                                    bitmask[byteIndex] |= mask;
+                                }
+                            }
+                        }
+
+                        var contents = cursorPixels.Concat(bitmask).ToArray();
+
+                        source.PointerInfo.Image = new PointerImage
+                        {
+                            Width = pointerShapeInformation.Width,
+                            Height = pointerShapeInformation.Height,
+                            BytesPerPixel = pointerShapeInformation.Pitch,
+                            Image = contents,
+                        };
+                    }
+                }
+            }
+            else
+            {
+                source.PointerInfo.Image = null;
+            }
+        }
+
         /// <inheritdoc />
         /// <summary>
         ///   Creates a single bitmap from the captured frames and returns an object with its information
@@ -253,7 +350,7 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
             if (this.sources.Length == 1 && this.sources.First().Alive)
             {
                 // TODO: if multiple textures are owned by a single adapter, merge them using CopySubresourceRegion
-                return new D3D11VideoFrame(this.sources[0].Texture, this.sources[0].MoveRectangles, this.sources[0].DirtyRectangles);
+                return new D3D11VideoFrame(this.sources[0].Texture, this.sources[0].MoveRectangles, this.sources[0].DirtyRectangles, this.sources[0].PointerInfo);
             }
 
             return null;

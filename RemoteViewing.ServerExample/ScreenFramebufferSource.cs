@@ -66,21 +66,6 @@ namespace RemoteViewing.ServerExample
 
                 lock (this.framebuffer.SyncRoot)
                 {
-                    //fixed (byte* framebufferData = framebuffer.GetBuffer())
-                    //{
-                    //    var data = (frame as GdiBitmapVideoFrame).BitmapData;
-                    //    VncPixelFormat.Copy(
-                    //        data.Scan0,
-                    //        data.Stride,
-                    //        VncPixelFormat.RGB32,
-                    //        new VncRectangle(0, 0, w, h),
-                    //        (IntPtr)framebufferData,
-                    //        framebuffer.Stride,
-                    //        framebuffer.PixelFormat,
-                    //        0,
-                    //        0);
-                    //}
-
                     frame.CopyToVncFramebuffer(framebuffer);
                 }
             }

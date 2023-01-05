@@ -85,83 +85,8 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
 
             session.FramebufferManualBeginUpdate();
 
-            // Take a lock here, as we will modify
-            // both buffers heavily in the next block.
-            //lock (fb.SyncRoot)
-            //{
-            //    lock (this.cachedFramebuffer.SyncRoot)
-            //    {
-            //        var actualBuffer = this.Framebuffer.GetBuffer();
-            //        var bufferedBuffer = this.cachedFramebuffer.GetBuffer();
-
-            //        // In this block, we will determine which rectangles need updating. Right now, we consider
-            //        // each line at once. It's not a very efficient algorithm, but it works.
-            //        // We're going to start at the upper-left position of the region, and then we will work our way down,
-            //        // on a line by line basis, to determine if each line is still valid.
-            //        // isLineInvalid will indicate, on a line-by-line basis, whether a line is still valid or not.
-            //        for (int y = region.Y; y < region.Y + region.Height; y++)
-            //        {
-            //            subregion.X = region.X;
-            //            subregion.Y = y;
-            //            subregion.Width = region.Width;
-            //            subregion.Height = 1;
-
-            //            // For a given y, the x pixels are stored sequentially in the array
-            //            // starting at y * stride (number of bytes per row); for each x
-            //            // value there are bpp bytes of data (4 for a 32-bit integer); we are looking
-            //            // for pixels between x and x + w so this translates to
-            //            // y * stride + bpp * x and y * stride + bpp * (x + w)
-            //            int srcOffset = (y * this.Framebuffer.Stride) + (bpp * region.X);
-            //            int length = bpp * region.Width;
-
-            //            var isValid = actualBuffer.AsSpan().Slice(srcOffset, length)
-            //                              .SequenceCompareTo(bufferedBuffer.AsSpan().Slice(srcOffset, length)) == 0;
-
-            //            if (!isValid)
-            //            {
-            //                try
-            //                {
-            //                    Buffer.BlockCopy(actualBuffer, srcOffset, bufferedBuffer, srcOffset, length);
-            //                }
-            //                catch
-            //                {
-            //                    throw;
-            //                }
-            //            }
-
-            //            this.isLineInvalid[y - region.Y] = !isValid;
-            //        }
-            //    } // lock
-            //} // lock
-
             if (incremental)
             {
-                //// Determine logical group of lines which are invalid. We find the first line which is invalid,
-                //// create a new region which contains the all invalid lines which immediately follow the current line.
-                //// If we find a valid line, we'll create a new region.
-                //int? y = null;
-
-                //for (int line = 0; line < region.Height; line++)
-                //{
-                //    if (y == null && this.isLineInvalid[line])
-                //    {
-                //        y = region.Y + line;
-                //    }
-
-                //    if (y != null && (!this.isLineInvalid[line] || line == region.Height - 1))
-                //    {
-                //        // Flush
-                //        subregion.X = region.X;
-                //        subregion.Y = region.Y + y.Value;
-                //        subregion.Width = region.Width;
-                //        subregion.Height = line - y.Value + 1;
-                //        session.FramebufferManualInvalidate(subregion);
-                //        y = null;
-                //    }
-                //}
-
-
-
                 var dxgiFb = fb as DxgiFramebuffer;
 
                 foreach (var moveRectangle in dxgiFb.MoveRectangles)
@@ -181,6 +106,16 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
                             dirtyRectangle.Top,
                             dirtyRectangle.Right - dirtyRectangle.Left,
                             dirtyRectangle.Bottom - dirtyRectangle.Top));
+                }
+
+                if (dxgiFb.PointerInfo != null)
+                {
+                    session.FramebufferSendCursor(
+                        dxgiFb.PointerInfo.PointerPosition.X,
+                        dxgiFb.PointerInfo.PointerPosition.Y,
+                        dxgiFb.PointerInfo.Image.Width,
+                        dxgiFb.PointerInfo.Image.Height,
+                        dxgiFb.PointerInfo.Image.Image);
                 }
             }
             else

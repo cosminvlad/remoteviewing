@@ -1,13 +1,9 @@
-﻿using System;
-using System.Drawing;
-using System.Drawing.Imaging;
-using RemoteViewing.ServerExample.ScreenCapture.Gdi;
-using RemoteViewing.Vnc;
+﻿using RemoteViewing.Vnc;
 using SharpDX;
-using SharpDX.Diagnostics;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
+using System;
 using MapFlags = SharpDX.Direct3D11.MapFlags;
 
 namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
@@ -23,12 +19,14 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
 
         internal RawRectangle[] DirtyRectangles { get; set; }
 
+        internal PointerInfo PointerInfo { get; set; }
+
         /// <summary>
         ///   Creates a new Direct3D 11 video frame
         /// </summary>
         /// <param name="texture">Texture object</param>
         /// <param name="presentTime">Time, in 100-nanosecond units, of the frame capture</param>
-        internal D3D11VideoFrame(Texture2D texture, OutputDuplicateMoveRectangle[] moveRectangles, RawRectangle[] dirtyRectangles)
+        internal D3D11VideoFrame(Texture2D texture, OutputDuplicateMoveRectangle[] moveRectangles, RawRectangle[] dirtyRectangles, PointerInfo pointerInfo)
         {
             Width = texture.Description.Width;
             Height = texture.Description.Height;
@@ -36,6 +34,7 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
             Texture = texture;
             MoveRectangles = moveRectangles;
             DirtyRectangles = dirtyRectangles;
+            PointerInfo = pointerInfo;
         }
 
         public override unsafe void CopyToVncFramebuffer(VncFramebuffer framebuffer)
@@ -46,19 +45,6 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
 
                 fixed (byte* framebufferData = framebuffer.GetBuffer())
                 {
-                    //var data = (frame as GdiBitmapVideoFrame).BitmapData;
-                    //VncPixelFormat.Copy(
-                    //    data.Scan0,
-                    //    data.Stride,
-                    //    VncPixelFormat.RGB32,
-                    //    new VncRectangle(0, 0, w, h),
-                    //    (IntPtr)framebufferData,
-                    //    framebuffer.Stride,
-                    //    framebuffer.PixelFormat,
-                    //    0,
-                    //    0);
-
-                    // merge partial captures into one big bitmap
                     IntPtr dstScan0 = (IntPtr)framebufferData,
                         srcScan0 = map.DataPointer;
                     int dstStride = framebuffer.Stride,
@@ -87,6 +73,7 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
 
             dxgiFramebuffer.MoveRectangles = MoveRectangles;
             dxgiFramebuffer.DirtyRectangles = DirtyRectangles;
+            dxgiFramebuffer.PointerInfo = PointerInfo;
         }
 
         private void DetectSolidRectangles(DxgiFramebuffer dxgiFramebuffer)

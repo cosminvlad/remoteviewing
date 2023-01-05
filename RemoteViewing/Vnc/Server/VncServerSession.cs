@@ -613,6 +613,31 @@ namespace RemoteViewing.Vnc.Server
             return true;
         }
 
+        public void FramebufferSendCursor(int x, int y, int w, int h, byte[] image)
+        {
+            var cursorPixels = image;
+            var bitmask = new byte[(int)Math.Floor((w + 7) / 8.0) * h];
+
+            int bytesPerPixel = 4;
+            for (int i = 0; i < w; i++)
+            {
+                for (int j = 0; j < h; j++)
+                {
+                    if (image[j * w * bytesPerPixel + i * bytesPerPixel + 3] < 127)
+                    {
+                        var bitIndex = j * w + i;
+                        int byteIndex = bitIndex / 8;
+                        int bitInByteIndex = bitIndex % 8;
+                        byte mask = (byte)(1 << bitInByteIndex);
+                        bitmask[byteIndex] |= mask;
+                    }
+                }
+            }
+
+            var contents = cursorPixels.Concat(bitmask).ToArray();
+            //this.AddRegion(new VncRectangle(x, y, w, h), VncEncoding.PseudoCursor, contents);
+        }
+
         /// <summary>
         /// Sends the framebuffer changes to the client.
         /// </summary>

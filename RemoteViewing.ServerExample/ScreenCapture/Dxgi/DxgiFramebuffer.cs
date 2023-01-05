@@ -10,6 +10,8 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
 
         internal RawRectangle[] DirtyRectangles { get; set; }
 
+        internal PointerInfo PointerInfo { get; set; }
+
         public DxgiFramebuffer(string name, int width, int height, VncPixelFormat pixelFormat)
             : base(name, width, height, pixelFormat)
         {

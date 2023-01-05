@@ -335,7 +335,11 @@ namespace RemoteViewing.Vnc
 
                 try
                 {
+#if NET462
+                    stream.Write(buffer.ToArray(), 0, buffer.Length);
+#else
                     stream.Write(buffer);
+#endif
                 }
                 catch (ObjectDisposedException)
                 {

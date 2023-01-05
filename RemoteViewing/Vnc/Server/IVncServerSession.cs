@@ -175,5 +175,7 @@ namespace RemoteViewing.Vnc.Server
         /// Do not call this method without holding <see cref="VncServerSession.FramebufferUpdateRequestLock"/>.
         /// </remarks>
         bool FramebufferManualEndUpdate();
+
+        void FramebufferSendCursor(int x, int y, int w, int h, byte[] image);
     }
 }
