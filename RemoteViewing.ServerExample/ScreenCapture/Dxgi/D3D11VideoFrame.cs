@@ -28,7 +28,7 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
         /// </summary>
         /// <param name="texture">Texture object</param>
         /// <param name="presentTime">Time, in 100-nanosecond units, of the frame capture</param>
-        internal D3D11VideoFrame(Texture2D texture, OutputDuplicateMoveRectangle[] moveRectangles, RawRectangle[] dirtyRectangles )
+        internal D3D11VideoFrame(Texture2D texture, OutputDuplicateMoveRectangle[] moveRectangles, RawRectangle[] dirtyRectangles)
         {
             Width = texture.Description.Width;
             Height = texture.Description.Height;
@@ -82,8 +82,26 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
             }
 
             var dxgiFramebuffer = framebuffer as DxgiFramebuffer;
+
+            //DetectSolidRectangles(dxgiFramebuffer);
+
             dxgiFramebuffer.MoveRectangles = MoveRectangles;
             dxgiFramebuffer.DirtyRectangles = DirtyRectangles;
+        }
+
+        private void DetectSolidRectangles(DxgiFramebuffer dxgiFramebuffer)
+        {
+            const int MIN_SOLID_RECTANGLE_SIZE = 16;
+            foreach (var dirtyRectangle in DirtyRectangles)
+            {
+                for (int dy = dirtyRectangle.Top; dy < dirtyRectangle.Bottom; dy += MIN_SOLID_RECTANGLE_SIZE)
+                {
+                    for (int dx = dirtyRectangle.Left; dx < dirtyRectangle.Right; dx += MIN_SOLID_RECTANGLE_SIZE)
+                    {
+
+                    }
+                }
+            }
         }
     }
 }

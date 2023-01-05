@@ -318,24 +318,7 @@ namespace RemoteViewing.Vnc
         /// <param name="buffer">
         /// The bytes to write to the stream.
         /// </param>
-        public void Send(byte[] buffer)
-        {
-            this.Send(buffer, 0, buffer.Length);
-        }
-
-        /// <summary>
-        /// Writes a sequence of bytes to the current stream and advances the current position within this stream by the number of bytes written.
-        /// </summary>
-        /// <param name="buffer">
-        /// An array of bytes. This method copies <paramref name="count"/> bytes from <paramref name="buffer"/> to the current stream.
-        /// </param>
-        /// <param name="offset">
-        /// The zero-based byte offset in <paramref name="buffer"/> at which to begin copying bytes to the current stream.
-        /// </param>
-        /// <param name="count">
-        /// The number of bytes to be written to the current stream.
-        /// </param>
-        public void Send(byte[] buffer, int offset, int count)
+        public void Send(ReadOnlySpan<byte> buffer)
         {
             if (this.Stream == null)
             {
@@ -352,7 +335,7 @@ namespace RemoteViewing.Vnc
 
                 try
                 {
-                    stream.Write(buffer, offset, count);
+                    stream.Write(buffer);
                 }
                 catch (ObjectDisposedException)
                 {

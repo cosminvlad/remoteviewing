@@ -35,6 +35,7 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using TurboJpegWrapper;
 
@@ -495,6 +496,8 @@ namespace RemoteViewing.Vnc.Server
                 return;
             }
 
+            //FindSolidBlocks(region);
+
             int x = region.X, y = region.Y, w = region.Width, h = region.Height, bpp = cpf.BytesPerPixel;
             var contents = ArrayPool<byte>.Shared.Rent(w * h * bpp);
 
@@ -509,7 +512,55 @@ namespace RemoteViewing.Vnc.Server
                 w * bpp,
                 cpf);
 
+            //var buf = fb.GetBuffer();
+            //for (int i = 0; i < w; i++)
+            //{
+            //    contents[i * bpp + 2] = byte.MaxValue;
+            //    contents[i * bpp + (w * (h - 1)) * bpp + 2] = byte.MaxValue;
+            //}
+            //for (int j = 0; j < h; j++)
+            //{
+            //    contents[j * w * bpp + 2] = byte.MaxValue;
+            //    contents[j * w * bpp + 2 + ((w - 1) * bpp)] = byte.MaxValue;
+            //}
+
+            //for (int j = y; j < h; j++)
+            //    {
+            //        if (i == x || i == w - 1 || j == y || j == h - 1)
+            //        {
+            //        }
+            //    }
+            //}
+
             this.AddRegion(region, VncEncoding.Raw, contents);
+        }
+
+        private void FindSolidBlocks(VncRectangle region)
+        {
+            // The size in pixels of either side of each block tested when looking
+            // for solid blocks.
+            const int SolidSearchBlock = 16;
+            // Don't bother with blocks smaller than this
+            const int SolidBlockMinArea = 2048;
+
+            var fb = this.Framebuffer;
+            var buffer = fb.GetBuffer();
+            var cpf = this.clientPixelFormat;
+            int x = region.X, y = region.Y, w = region.Width, h = region.Height, bpp = cpf.BytesPerPixel, stride = w * bpp;
+
+            int rectangleColor = buffer[0];
+            VncRectangle solidRectangle = new VncRectangle(0, 0, 1, 1);
+            for (int j = y; j < h; j += SolidSearchBlock)
+            {
+                for (int i = x; i < w; i += SolidSearchBlock)
+                {
+                    var color = buffer[j * stride + i];
+                    if (color == rectangleColor)
+                    {
+                        solidRectangle.Width++;
+                    }
+                }
+            }
         }
 
         /// <inheritdoc/>
