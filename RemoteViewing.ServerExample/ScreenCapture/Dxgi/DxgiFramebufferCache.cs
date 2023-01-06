@@ -113,9 +113,9 @@ namespace RemoteViewing.ServerExample.ScreenCapture.Dxgi
                     session.FramebufferSendCursor(
                         dxgiFb.PointerInfo.PointerPosition.X,
                         dxgiFb.PointerInfo.PointerPosition.Y,
-                        dxgiFb.PointerInfo.Image.Width,
-                        dxgiFb.PointerInfo.Image.Height,
-                        dxgiFb.PointerInfo.Image.Image);
+                        5, //dxgiFb.PointerInfo.Image.Width,
+                        5, //dxgiFb.PointerInfo.Image.Height,
+                        null);//dxgiFb.PointerInfo.Image.Image);
                 }
             }
             else

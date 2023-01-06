@@ -13,19 +13,14 @@
     <IsPackable>false</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\RemoteViewing.NoVncExample\DummyFramebufferSource.cs" Link="DummyFramebufferSource.cs" />
-  </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
-    <PackageReference Include="Silk.NET.DXGI" Version="2.16.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
     <PackageReference Include="SharpDX.DXGI" Version="4.2.0" />
+    <PackageReference Include="SharpDX.Direct2D1" Version="4.2.0" />
     <PackageReference Include="SharpDX.Direct3D11" Version="4.2.0" />
 
 
-	<PackageReference Include="Quamotion.RemoteViewing.LibVnc.NativeBinaries" Version="1.1.197" />
 	<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
 	<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
 	<ProjectReference Include="..\RemoteViewing.LibVnc\RemoteViewing.LibVnc.csproj" />

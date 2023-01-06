@@ -28,18 +28,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using RemoteViewing.Hosting;
-using RemoteViewing.LibVnc;
-using RemoteViewing.NoVncExample;
+using RemoteViewing.ServerExample.ScreenCapture.Dxgi;
 using RemoteViewing.Vnc;
+using RemoteViewing.Vnc.Server;
+using System;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Threading.Tasks;
-using RemoteViewing.Vnc.Server;
-using Microsoft.Extensions.Logging;
-using System;
-using RemoteViewing.ServerExample.ScreenCapture.Dxgi;
 
 namespace RemoteViewing.ServerExample
 {

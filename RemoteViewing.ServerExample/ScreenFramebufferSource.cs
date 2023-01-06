@@ -1,9 +1,8 @@
 ﻿using RemoteViewing.ServerExample.Native;
 using RemoteViewing.ServerExample.ScreenCapture;
+using RemoteViewing.ServerExample.ScreenCapture.Dxgi;
 using RemoteViewing.Vnc;
 using System;
-using System.Drawing;
-using RemoteViewing.ServerExample.ScreenCapture.Dxgi;
 
 namespace RemoteViewing.ServerExample
 {
@@ -13,7 +12,6 @@ namespace RemoteViewing.ServerExample
     /// </summary>
     public partial class ScreenFramebufferSource : IVncFramebufferSource
     {
-        private Bitmap bitmap;
         private VncFramebuffer framebuffer;
         private string name;
         private readonly VideoCaptureDevice captureDevice;
@@ -58,9 +56,8 @@ namespace RemoteViewing.ServerExample
 
                 int w = frame.Width, h = frame.Height;
 
-                if (this.bitmap == null || this.bitmap.Width != w || this.bitmap.Height != h)
+                if (this.framebuffer == null || this.framebuffer.Width != w || this.framebuffer.Height != h)
                 {
-                    this.bitmap = new Bitmap(w, h);
                     this.framebuffer = new DxgiFramebuffer(this.name, w, h, new VncPixelFormat());
                 }
 
